@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Resume Review{% endblock %}
+
+{% block content %}
+    <h2>Submit Your Resume for Review</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" name="resume_file" class="form-control mb-2" required>
+        <button type="submit" class="btn btn-primary">Upload</button>
+    </form>
+
+    <h3>Uploaded Resumes:</h3>
+    <ul>
+        {% for resume in resumes %}
+            <li><a href="{{ resume.resume_file.url }}">{{ resume.resume_file.name }}</a></li>
+        {% empty %}
+            <li>No resumes uploaded yet.</li>
+        {% endfor %}
+    </ul>
+{% endblock %}
+

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Home - Forum{% endblock %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <h1 class="display-4 fw-bold">Welcome to the Forum App</h1>
+    <p class="lead text-muted">Engage in discussions, participate in polls, explore events, and submit your resume for review.</p>
+
+    <!-- Call-to-Action Buttons -->
+    <div class="mt-4">
+        <a href="/posts/" class="btn btn-primary btn-lg m-2">Explore Posts</a>
+        <a href="/polls/" class="btn btn-outline-primary btn-lg m-2">Take a Poll</a>
+        <a href="/events/" class="btn btn-success btn-lg m-2">View Events</a>
+        <a href="/resume-review/" class="btn btn-warning btn-lg m-2">Submit Resume</a>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row mt-5">
+        <div class="col-md-4">
+            <h3>📢 Discussions</h3>
+            <p>Engage with the community and share your thoughts.</p>
+        </div>
+        <div class="col-md-4">
+            <h3>📊 Polls</h3>
+            <p>Vote on trending topics and see what others think.</p>
+        </div>
+        <div class="col-md-4">
+            <h3>📅 Events</h3>
+            <p>Stay updated with the latest events in your field.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Polls{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Active Polls</h2>
+    {% for poll in polls %}
+        <div class="card my-3">
+            <div class="card-body">
+                <h4 class="card-title">{{ poll.question }}</h4>
+                <form method="post">
+                    {% csrf_token %}
+                    {% for option in poll.options.all %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="option_id" value="{{ option.id }}" required>
+                            <label class="form-check-label">{{ option.option_text }} (Votes: {{ option.votes }})</label>
+                        </div>
+                    {% endfor %}
+                    <button class="btn btn-success mt-2">Vote</button>
+                </form>
+            </div>
+        </div>
+    {% empty %}
+        <p class="text-center">No active polls.</p>
+    {% endfor %}
+</div>
+{% endblock %}
