@@ -9,57 +9,25 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // Make an API call to fetch events
-        fetch("/events/data/")
+        var calendarEl = document.getElementById("calendar");
+
+        fetch("/events/data/")  // Fetch event data
             .then(response => response.json())
             .then(events => {
-                const calendarEl = document.getElementById("calendar");
+                var formattedEvents = events.map(event => ({
+                    title: event.title,
+                    start: event.date  // Ensure event.date is in YYYY-MM-DD format
+                }));
 
-                // Get the current date and determine the month
-                const currentDate = new Date();
-                const currentMonth = currentDate.getMonth();
-                const currentYear = currentDate.getFullYear();
-                const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-                const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
-                const numDaysInMonth = lastDayOfMonth.getDate();
-                const startDayOfWeek = firstDayOfMonth.getDay();  // Sunday = 0, Monday = 1, ...
-
-                // Generate calendar layout
-                const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-                let calendarHTML = "<table class='table table-bordered'><thead><tr>";
-                daysOfWeek.forEach(day => calendarHTML += `<th>${day}</th>`);
-                calendarHTML += "</tr></thead><tbody>";
-
-                // Add empty cells for days before the 1st of the month
-                let dayCounter = 1;
-                let rowStarted = false;
-
-                for (let i = 0; i < 6; i++) {  // 6 rows for max 42 days
-                    calendarHTML += "<tr>";
-
-                    for (let j = 0; j < 7; j++) {
-                        if (i === 0 && j < startDayOfWeek) {
-                            // Add empty cells for days before the 1st
-                            calendarHTML += "<td></td>";
-                        } else if (dayCounter <= numDaysInMonth) {
-                            const eventDay = events.find(event => new Date(event.date).getDate() === dayCounter);
-                            // Add a day cell
-                            if (eventDay) {
-                                calendarHTML += `<td style="background-color: yellow;" onclick="alert('Event: ${eventDay.title}')">${dayCounter}</td>`;
-                            } else {
-                                calendarHTML += `<td>${dayCounter}</td>`;
-                            }
-                            dayCounter++;
-                        } else {
-                            calendarHTML += "<td></td>";  // Empty cells after the last day of the month
-                        }
+                var calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: "dayGridMonth",  // Month view
+                    events: formattedEvents,  // Load events from backend
+                    eventClick: function(info) {
+                        alert("Event: " + info.event.title);
                     }
-                    calendarHTML += "</tr>";
-                    if (dayCounter > numDaysInMonth) break;
-                }
+                });
 
-                calendarHTML += "</tbody></table>";
-                calendarEl.innerHTML = calendarHTML;
+                calendar.render();  // Render the calendar
             })
             .catch(error => console.error("Error fetching events: ", error));
     });
