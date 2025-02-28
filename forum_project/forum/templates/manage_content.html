@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Manage Content{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">Manage Content</h2>
+
+    <div class="row">
+        <!-- Manage Forum -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5>📌 Manage Forum</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'add_object' 'topic' %}" class="btn btn-success btn-sm">+ Add Topic</a>
+                    <a href="{% url 'add_object' 'post' %}" class="btn btn-success btn-sm">+ Add Post</a>
+                    <a href="{% url 'add_object' 'comment' %}" class="btn btn-success btn-sm">+ Add Comment</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Events -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h5>📅 Manage Events</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'add_object' 'event' %}" class="btn btn-success btn-sm">+ Add Event</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Polls -->
+        <div class="col-md-6 mt-3">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5>📊 Manage Polls</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'add_object' 'poll' %}" class="btn btn-success btn-sm">+ Add Poll</a>
+                    <a href="{% url 'add_object' 'polloption' %}" class="btn btn-success btn-sm">+ Add Poll Option</a>
+                </div>
+            </div>
+        </div>
+
+<!-- Manage User Access -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h3>Manage User Access</h3>
+    </div>
+    <div class="card-body">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Is Staff</th>
+                    <th>Is Superuser</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        <input type="checkbox" class="permission-toggle" data-user-id="{{ user.id }}" data-perm="is_staff" {% if user.is_staff %}checked{% endif %}>
+                    </td>
+                    <td>
+                        <input type="checkbox" class="permission-toggle" data-user-id="{{ user.id }}" data-perm="is_superuser" {% if user.is_superuser %}checked{% endif %}>
+                    </td>
+                    <td>
+                        <button class="btn btn-primary save-permissions" data-user-id="{{ user.id }}">Save</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+        <!-- Manage Resume Reviews -->
+        <div class="col-md-6 mt-3">
+            <div class="card shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h5>📁 Manage Resume Reviews</h5>
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'add_object' 'resume' %}" class="btn btn-success btn-sm">+ Add Resume</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.save-permissions').forEach(button => {
+        button.addEventListener('click', function() {
+            const userId = this.dataset.userId;
+            const isStaff = document.querySelector(`input[data-user-id="${userId}"][data-perm="is_staff"]`).checked;
+            const isSuperuser = document.querySelector(`input[data-user-id="${userId}"][data-perm="is_superuser"]`).checked;
+
+            fetch(`/update-permissions/${userId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ is_staff: isStaff, is_superuser: isSuperuser })
+            }).then(response => response.json())
+              .then(data => alert(data.message))
+              .catch(error => console.error("Error:", error));
+        });
+    });
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    </script>
+{% endblock %}
+

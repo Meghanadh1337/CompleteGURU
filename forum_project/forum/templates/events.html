@@ -7,50 +7,119 @@
     <div id="calendar"></div>
 </div>
 
+<!-- Event Popup -->
+<div id="eventPopup" class="popup">
+    <div class="popup-content">
+        <span class="close-btn" onclick="closePopup()">✖</span>
+        <h3 id="popupTitle"></h3>
+        <p id="popupDescription"></p>
+    </div>
+</div>
+
+<a href="{% url 'admin:forum_event_changelist' %}" class="btn btn-primary">
+    Manage Events
+</a>
+
+<style>
+    /* Ensure event text wraps inside the calendar box */
+    .fc-daygrid-event {
+        white-space: normal !important;
+        overflow-wrap: break-word;
+        padding: 2px;
+        font-size: 12px;
+        text-align: center;
+        background: #ffeb3b;
+        color: #000;
+        border-radius: 4px;
+    }
+
+    /* Notification-style pop-up */
+    .popup {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 15px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        z-index: 1000;
+        width: 300px;
+        text-align: center;
+    }
+
+    .popup-content {
+        position: relative;
+    }
+
+    .close-btn {
+        position: absolute;
+        top: 5px;
+        right: 10px;
+        cursor: pointer;
+        font-size: 20px;
+        color: red;
+    }
+
+    .close-btn:hover {
+        color: darkred;
+    }
+</style>
+
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         var calendarEl = document.getElementById("calendar");
 
-        fetch("/events/data/")  // Fetch event data
+        fetch("/events/data/")
             .then(response => response.json())
             .then(events => {
                 if (events.length === 0) {
-                    showNoEventsPopup();  // Show a soft pop-up
+                    showNoEventsPopup();
                 }
 
                 var formattedEvents = events.map(event => ({
-                    title: event.title + "\n" + event.description,  // Display title and description
+                    title: "TITLE : "+event.title,  // Ensure wrap
                     start: event.date,
-                    extendedProps: { description: event.description } // Extra event details
+                    description: "DETAILS : "+event.description
                 }));
 
                 var calendar = new FullCalendar.Calendar(calendarEl, {
                     initialView: "dayGridMonth",
+                    headerToolbar: {
+                        left: "prev,next today",
+                        center: "title",
+                        right: "dayGridMonth,timeGridWeek,timeGridDay"
+                    },
                     events: formattedEvents,
                     eventClick: function(info) {
-                        showEventPopup(info.event.title, info.event.extendedProps.description);
+                        showPopup(info.event.title, info.event.extendedProps.description);
                     }
                 });
 
                 calendar.render();
             })
-            .catch(error => console.error("Error fetching events: ", error));
-
-        // Function to show event pop-up
-        function showEventPopup(title, description) {
-            document.getElementById("eventTitle").innerText = title;
-            document.getElementById("eventDescription").innerText = description;
-            document.getElementById("eventModal").style.display = "block";
-        }
-
-        // Function to show 'No Events' pop-up
-        function showNoEventsPopup() {
-            document.getElementById("noEventsModal").style.display = "block";
-        }
-
-        // Function to close modals
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = "none";
-        }
+            .catch(error => console.error("Error fetching events:", error));
     });
+
+    function closePopup() {
+        document.getElementById("eventPopup").style.display = "none";
+    }
+
+    function showNoEventsPopup() {
+        var noEventsMessage = document.createElement("div");
+        noEventsMessage.innerText = "No events scheduled for this month.";
+        noEventsMessage.className = "no-events-message";
+        document.body.appendChild(noEventsMessage);
+
+        setTimeout(() => { noEventsMessage.style.opacity = "0"; }, 2500);
+        setTimeout(() => { noEventsMessage.remove(); }, 3000);
+    }
+
+    function showPopup(title, description) {
+        document.getElementById("popupTitle").innerText = title;
+        document.getElementById("popupDescription").innerText = description;
+        document.getElementById("eventPopup").style.display = "block";
+    }
 </script>
+{% endblock %}

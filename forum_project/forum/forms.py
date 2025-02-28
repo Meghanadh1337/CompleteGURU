@@ -1,7 +1,7 @@
 # forum/forms.py
 
 from django import forms
-from .models import User
+from .models import User, Event, Post, Comment, Poll, Resume
 
 class CustomUserCreationForm(forms.ModelForm):
     # Add the fields you need in the form
@@ -35,3 +35,29 @@ class RegisterForm(forms.ModelForm):
 class LoginForm(forms.Form):
     username = forms.CharField()
     password = forms.CharField(widget=forms.PasswordInput)
+
+
+class EventForm(forms.ModelForm):
+    class Meta:
+        model = Event
+        fields = ["title", "description", "date"]
+
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ["topic", "title", "content"]
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ["post", "content", "author"]
+
+class PollForm(forms.ModelForm):
+    class Meta:
+        model = Poll
+        fields = ["question"]
+
+class ResumeForm(forms.ModelForm):
+    class Meta:
+        model = Resume
+        fields = ["name", "email", "resume_file"]

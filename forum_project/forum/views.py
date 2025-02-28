@@ -9,8 +9,14 @@ from django.contrib.auth import login , get_user_model
 from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm
-
+from .forms import CustomUserCreationForm, EventForm, PostForm, CommentForm, PollForm, ResumeForm
+from django.forms import modelform_factory
+from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import user_passes_test
+import json
 class TopicListCreateView(generics.ListCreateAPIView):
     queryset = Topic.objects.all()
     serializer_class = TopicSerializer
@@ -138,9 +144,88 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
             return redirect('home')  # Redirect to home after login
+        else:
+            print("DEBUG: Authentication failed - Errors:", form.errors)  # Print errors
     else:
         form = AuthenticationForm()
+
     return render(request, "login.html", {"form": form})
 
 
 
+MODEL_MAP = {
+    "topic": Topic,
+    "post": Post,
+    "comment": Comment,
+    "event": Event,
+    "poll": Poll,
+    "polloption": PollOption,
+    "resume": Resume,
+}
+
+def handle_form(request, model_name, object_id=None):
+    model = MODEL_MAP.get(model_name.lower())
+    if not model:
+        return render(request, "404.html", {"message": "Invalid Model"})
+
+    FormClass = modelform_factory(model, exclude=[])
+    instance = get_object_or_404(model, id=object_id) if object_id else None
+
+    if request.method == "POST":
+        form = FormClass(request.POST, request.FILES, instance=instance)
+        if form.is_valid():
+            form.save()
+            return redirect("manage_content")
+    else:
+        form = FormClass(instance=instance)
+
+    return render(request, "add_object.html", {"form": form, "model_name": model_name})
+
+
+def manage_content(request):
+    User = get_user_model()
+    users = User.objects.all()
+    return render(request, "manage_content.html", {"users": users})
+
+def delete_object(request, model_name, object_id):
+    model_map = {
+        "topic": Topic,
+        "post": Post,
+        "comment": Comment,
+        "event": Event,
+        "poll": Poll,
+        "polloption": PollOption,
+        "resume": Resume,
+    }
+
+    model = model_map.get(model_name.lower())
+    if not model:
+        messages.error(request, "Invalid model name.")
+        return redirect("manage_content")
+
+    obj = get_object_or_404(model, id=object_id)
+    obj.delete()
+    messages.success(request, f"{model_name.capitalize()} deleted successfully.")
+
+    return redirect("manage_content")
+
+
+@csrf_exempt
+def update_permissions(request, user_id):
+    from .models import User
+    if request.method == "POST":
+        data = json.loads(request.body)
+        try:
+            user = User.objects.get(id=user_id)
+            user.is_staff = data.get("is_staff", user.is_staff)
+            user.is_superuser = data.get("is_superuser", user.is_superuser)
+            user.save()
+            return JsonResponse({"message": "Permissions updated successfully!"})
+        except User.DoesNotExist:
+            return JsonResponse({"error": "User not found"}, status=404)
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+@login_required
+def check_admin_status(request):
+    """Returns JSON response indicating if the user is an admin."""
+    return JsonResponse({"is_admin": request.user.is_staff or request.user.is_superuser})

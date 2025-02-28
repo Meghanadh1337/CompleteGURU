@@ -7,8 +7,11 @@ class User(AbstractUser):  # Extends Django's built-in User model
     name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
 
+    USERNAME_FIELD = "email"  # This tells Django to use email instead of username
+    REQUIRED_FIELDS = ["username"]  # Username is still required
+
     def __str__(self):
-        return self.username
+        return self.email  # Change this to display email instead of username
 
 # Create your models here.
 class Topic(models.Model):
