@@ -34,7 +34,8 @@ class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE,related_name="comments")  # Links comment to a post
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, default=1)  # Default to user ID 1
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)  # Allow null authors
+
 
 
     def __str__(self):

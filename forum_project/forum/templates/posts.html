@@ -1,75 +1,404 @@
-{% extends "base.html" %}
-{% block title %}Forum Discussions{% endblock %}
-
-{% block content %}
-<div class="container mt-4">
-    <h2 class="text-center mb-4">Forum Discussions</h2>
-
-    {% for post in posts %}
-        <div class="card my-4 shadow-sm border-0">
-            <div class="card-header bg-white border-bottom">
-                <h3 class="mb-0 fw-bold">{{ post.title }}</h3>
-                <p class="text-muted small mb-0">Posted by <strong>{{ post.author }}</strong></p>
-            </div>
-            <div class="card-body">
-                <p class="card-text">{{ post.content }}</p>
-            </div>
-
-            <!-- Replies Section -->
-            <div class="card-footer bg-light">
-                <h5 class="mb-3">Replies</h5>
-                {% if post.comments.all %}
-                    <ul class="list-unstyled">
-                        {% for comment in post.comments.all %}
-                            <li class="p-3 mb-2 bg-white rounded border">
-                                <div class="d-flex align-items-start">
-                                    <div class="me-3">
-                                        <div class="avatar-circle bg-primary text-white text-center">
-                                            {{ comment.author|first|upper }}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <p class="fw-bold mb-1">{{ comment.author }}</p>
-                                        <p class="mb-0">{{ comment.content }}</p>
-                                    </div>
-                                </div>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p class="text-muted">No replies yet.</p>
-                {% endif %}
-
-                <!-- Reply Form -->
-                <h5 class="mt-4">Add a Reply</h5>
-                <form method="post" class="mt-2">
-                    {% csrf_token %}
-                    <input type="hidden" name="post_id" value="{{ post.id }}">
-
-                    <label for="author" class="form-label">Your Name</label>
-                    <input type="text" class="form-control mb-2" name="author" id="author" required>
-
-                    <label for="comment_content" class="form-label">Reply</label>
-                    <textarea class="form-control mt-2" name="comment_content" required></textarea>
-
-                    <button class="btn btn-primary mt-2">Submit Reply</button>
-                </form>
-            </div>
-        </div>
-    {% empty %}
-        <p class="text-center text-muted">No posts available.</p>
-    {% endfor %}
-</div>
-
-<!-- Avatar Circle Styling -->
-<style>
-    .avatar-circle {
-        width: 40px;
-        height: 40px;
-        line-height: 40px;
-        border-radius: 50%;
-        font-size: 16px;
-        font-weight: bold;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forum Posts</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary-color: #0077cc;
+      --secondary-color: #f8f9f9;
+      --accent-color: #e6f4ff;
+      --border-color: #e3e6e8;
+      --text-color: #242729;
+      --muted-text: #6a737c;
     }
-</style>
-{% endblock %}
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text-color);
+      background-color: #f8f9f9;
+      line-height: 1.6;
+    }
+
+    .navbar {
+      border-top: 3px solid var(--primary-color);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .forum-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .question-card {
+      background: white;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 24px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+
+    .question-stats {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px;
+      border-right: 1px solid var(--border-color);
+      background-color: var(--secondary-color);
+      min-width: 80px;
+    }
+
+    .question-title {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--primary-color);
+      margin-bottom: 10px;
+    }
+
+    .question-title a {
+      text-decoration: none;
+      color: var(--primary-color);
+    }
+
+    .question-title a:hover {
+      color: #005999;
+    }
+
+    .question-body {
+      padding: 16px;
+    }
+
+    .question-metadata {
+      font-size: 13px;
+      color: var(--muted-text);
+      margin-bottom: 16px;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 8px;
+      margin-right: 5px;
+      margin-bottom: 5px;
+      background-color: var(--accent-color);
+      border-radius: 4px;
+      font-size: 13px;
+      color: #3b71a7;
+      text-decoration: none;
+    }
+
+    .tag:hover {
+      background-color: #d1e5f5;
+      color: #2c5777;
+    }
+
+    .answer-header {
+      padding: 12px 16px;
+      background-color: var(--secondary-color);
+      border-bottom: 1px solid var(--border-color);
+      font-weight: 600;
+    }
+
+    .answer-item {
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .answer-metadata {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted-text);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      padding: 6px 8px;
+      background-color: var(--accent-color);
+      border-radius: 4px;
+    }
+
+    .user-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 2px;
+      margin-right: 8px;
+      background-color: #e1ecf4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-color);
+      font-weight: bold;
+    }
+
+    .vote-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .vote-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: var(--muted-text);
+      cursor: pointer;
+      padding: 2px;
+    }
+
+    .vote-btn:hover {
+      color: var(--primary-color);
+    }
+
+    .vote-count {
+      font-size: 18px;
+      font-weight: bold;
+      margin: 6px 0;
+    }
+
+    .new-answer-form {
+      padding: 16px;
+      background-color: #fff;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .form-label {
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+
+    .btn-primary:hover {
+      background-color: #005999;
+      border-color: #005999;
+    }
+
+    .btn-outline-secondary {
+      color: var(--muted-text);
+      border-color: var(--border-color);
+    }
+
+    .btn-outline-secondary:hover {
+      background-color: var(--secondary-color);
+      color: var(--text-color);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 0;
+      color: var(--muted-text);
+    }
+
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      color: #d6d9dc;
+    }
+
+    @media (max-width: 768px) {
+      .question-stats {
+        flex-direction: row;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        padding: 8px;
+      }
+
+      .vote-controls {
+        flex-direction: row;
+        align-items: center;
+      }
+
+      .vote-count {
+        margin: 0 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  {% extends "base.html" %}
+  {% block title %}Forum Posts{% endblock %}
+  {% block content %}
+
+  <div class="container-fluid bg-white py-3 navbar">
+    <div class="container d-flex justify-content-between align-items-center">
+      <h1 class="h4 mb-0">Community Forum</h1>
+      <div>
+        <button class="btn btn-primary me-2">Ask Question</button>
+        <button class="btn btn-outline-secondary">
+          <i class="fas fa-filter me-1"></i> Filter
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="forum-container">
+    {% for post in posts %}
+    <div class="question-card">
+      <div class="d-flex">
+        <div class="question-stats">
+          <div class="vote-controls">
+            <button class="vote-btn"><i class="fas fa-caret-up"></i></button>
+            <span class="vote-count">0</span>
+            <button class="vote-btn"><i class="fas fa-caret-down"></i></button>
+          </div>
+          <div class="mt-2 text-center">
+            <span class="badge bg-light text-dark border">{{ post.comments.all|length }} answers</span>
+          </div>
+        </div>
+
+        <div class="question-body flex-grow-1">
+          <h2 class="question-title">
+            <a href="#">{{ post.title }}</a>
+          </h2>
+
+          <div class="question-metadata">
+            <span><i class="far fa-clock me-1"></i> Asked on {{ post.created_at|date:"F j, Y, g:i a" }}</span>
+            {% if post.author %}
+            <span class="ms-3"><i class="far fa-user me-1"></i> {{ post.author }}</span>
+            {% endif %}
+          </div>
+
+          <div class="question-content mb-3">
+            {{ post.content }}
+          </div>
+
+          <div class="question-tags">
+            <a href="#" class="tag">discussion</a>
+            <a href="#" class="tag">question</a>
+            {% if post.tags %}
+              {% for tag in post.tags %}
+                <a href="#" class="tag">{{ tag }}</a>
+              {% endfor %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Answers Section -->
+      <div class="answers-section">
+        <div class="answer-header">
+          <i class="fas fa-comment-dots me-2"></i> {{ post.comments.all|length }} Answers
+        </div>
+
+        {% for comment in post.comments.all %}
+        <div class="answer-item d-flex">
+          <div class="vote-controls me-3">
+            <button class="vote-btn"><i class="fas fa-caret-up"></i></button>
+            <span class="vote-count">0</span>
+            <button class="vote-btn"><i class="fas fa-caret-down"></i></button>
+          </div>
+
+          <div class="flex-grow-1">
+            <div class="answer-content">
+              {{ comment.content }}
+            </div>
+
+            <div class="answer-metadata">
+              <div class="answer-actions">
+                <button class="btn btn-sm btn-link text-muted p-0 me-3">Share</button>
+                <button class="btn btn-sm btn-link text-muted p-0">Report</button>
+              </div>
+
+              <div class="user-card">
+                <div class="user-avatar">
+                  {{ comment.author|slice:":1" }}
+                </div>
+                <div>
+                  <span class="fw-bold">{{ comment.author }}</span>
+                  <span class="ms-2">{{ comment.created_at|date:"F j, Y" }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="answer-item text-center py-4 text-muted">
+          <i class="far fa-comment-dots fs-4 mb-2"></i>
+          <p class="mb-0">No answers yet. Be the first to share your thoughts!</p>
+        </div>
+        {% endfor %}
+
+        <!-- New Answer Form -->
+        <div class="new-answer-form">
+          <h5 class="mb-3"><i class="fas fa-pen me-2"></i>Your Answer</h5>
+
+          <form method="post" class="mt-2">
+            {% csrf_token %}
+            <input type="hidden" name="post_id" value="{{ post.id }}">
+
+            <div class="mb-3">
+              <label for="author" class="form-label">Your Name</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                <input type="text" class="form-control" name="author" id="author" placeholder="Enter your name" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="comment_content" class="form-label">Your Answer</label>
+              <textarea class="form-control" name="comment_content" id="comment_content" rows="5" placeholder="Write your answer here..." required></textarea>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <button type="button" class="btn btn-outline-secondary me-2">
+                  <i class="fas fa-code me-1"></i> Code
+                </button>
+                <button type="button" class="btn btn-outline-secondary me-2">
+                  <i class="fas fa-image me-1"></i> Image
+                </button>
+              </div>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-paper-plane me-1"></i> Post Answer
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="far fa-comments"></i>
+      </div>
+      <h3>No questions yet</h3>
+      <p class="text-muted">Be the first to start a discussion in this community</p>
+      <button class="btn btn-primary mt-3">
+        <i class="fas fa-plus me-1"></i> Ask a Question
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Simple voting functionality
+    document.querySelectorAll('.vote-btn').forEach(button => {
+      button.addEventListener('click', function() {
+        const voteCount = this.parentElement.querySelector('.vote-count');
+        const currentCount = parseInt(voteCount.textContent);
+
+        if (this.querySelector('.fa-caret-up')) {
+          voteCount.textContent = currentCount + 1;
+        } else {
+          voteCount.textContent = currentCount - 1;
+        }
+
+        // Here you would typically make an API call to record the vote
+      });
+    });
+  </script>
+  {% endblock %}
+</body>
+</html>

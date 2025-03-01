@@ -2,26 +2,821 @@
 {% block title %}Polls{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2 class="text-center">Active Polls</h2>
+<!-- Add Chart.js library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<!-- Add Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="container py-5">
+  <div class="text-center mb-5">
+    <div class="polls-header-icon mb-2">
+      <i class="fas fa-poll-h"></i>
+    </div>
+    <h1 class="display-4 fw-bold">Community Polls</h1>
+    <p class="lead text-muted">
+      <i class="fas fa-chart-pie me-2"></i>Vote and see what others think!
+    </p>
+  </div>
+
+  <div class="row g-4 justify-content-center">
     {% for poll in polls %}
-        <div class="card my-3">
-            <div class="card-body">
-                <h4 class="card-title">{{ poll.question }}</h4>
-                <form method="post">
-                    {% csrf_token %}
-                    {% for option in poll.options.all %}
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="option_id" value="{{ option.id }}" required>
-                            <label class="form-check-label">{{ option.option_text }} (Votes: {{ option.votes }})</label>
-                        </div>
-                    {% endfor %}
-                    <button class="btn btn-success mt-2">Vote</button>
-                </form>
-            </div>
+    <div class="col-md-8">
+      <div class="whatsapp-poll-card poll-hover-effect">
+        <div class="poll-header">
+          <div class="poll-topic-icon">
+            <i class="fas fa-question-circle"></i>
+          </div>
+          <h4 class="poll-title">{{ poll.question }}</h4>
+          <div class="poll-meta">
+            <span class="total-votes">
+              <i class="fas fa-users me-1"></i>{{ poll.total_votes }} vote{% if poll.total_votes != 1 %}s{% endif %}
+            </span>
+            <span class="poll-date">
+              <i class="far fa-calendar-alt me-1"></i>Created on {{ poll.created_at|date:"M d, Y" }}
+            </span>
+          </div>
         </div>
+
+        <!-- Add pie chart visualization with enhanced styling -->
+        <div class="chart-container">
+          <div class="chart-wrapper">
+            <canvas id="pollChart-{{ poll.id }}" class="poll-chart"></canvas>
+            <div class="chart-center-text">
+              <span class="vote-number">{{ poll.total_votes }}</span>
+              <span class="vote-label">vote{% if poll.total_votes != 1 %}s{% endif %}</span>
+            </div>
+          </div>
+          <div class="chart-legend" id="chartLegend-{{ poll.id }}">
+            {% for option in poll.options.all %}
+            <div class="legend-item" data-option-id="{{ option.id }}">
+              <span class="color-box" id="legend-color-{{ option.id }}"></span>
+              <span class="legend-text">{{ option.option_text }}</span>
+              <span class="legend-count">
+                <i class="fas fa-vote-yea me-1"></i>
+                {{ option.votes }} vote{% if option.votes != 1 %}s{% endif %}
+              </span>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <form method="post" class="poll-form" id="poll-form-{{ poll.id }}">
+          {% csrf_token %}
+          <input type="hidden" name="poll_id" value="{{ poll.id }}">
+
+          <div class="wa-options-container">
+            {% for option in poll.options.all %}
+            <div class="wa-option-item">
+              <input class="option-input" type="radio" id="option-{{ option.id }}" name="option_id" value="{{ option.id }}" required>
+              <label class="wa-option-label" for="option-{{ option.id }}">
+                <div class="wa-option-text">
+                  <i class="option-icon fas fa-circle-dot me-2"></i>
+                  {{ option.option_text }}
+                </div>
+                <div class="wa-vote-count">{{ option.votes }}</div>
+                <div class="wa-option-bar-container">
+                  <div class="wa-option-bar" style="width: {% widthratio option.votes poll.total_votes|default:1 100 %}%"
+                       data-option-id="{{ option.id }}"
+                       data-percentage="{% widthratio option.votes poll.total_votes|default:1 100 %}"></div>
+                </div>
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+
+          <div class="wa-poll-actions">
+            <button type="submit" class="wa-vote-button">
+              <i class="fas fa-check-circle me-2"></i>Submit Vote
+            </button>
+          </div>
+        </form>
+
+        <div class="poll-footer">
+          <div class="poll-status">
+            <i class="fas fa-chart-simple"></i> Poll is active
+          </div>
+          <div class="share-poll">
+            <button class="btn-share" title="Share this poll">
+              <i class="fas fa-share-alt"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
     {% empty %}
-        <p class="text-center">No active polls.</p>
+    <div class="col-md-8">
+      <div class="empty-state">
+        <div class="empty-icon"><i class="fas fa-chart-bar"></i></div>
+        <h3>No active polls right now</h3>
+        <p>Check back later for new polls to participate in!</p>
+      </div>
+    </div>
     {% endfor %}
+  </div>
 </div>
+
+<!-- Toast Container for Notifications -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3">
+  <div id="voteToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header bg-warning">
+      <i class="fas fa-exclamation-circle me-2"></i>
+      <strong class="me-auto">Notice</strong>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+      You've already voted in this poll!
+    </div>
+  </div>
+</div>
+
+<style>
+  /* WhatsApp-inspired Poll Design */
+  body {
+    background-color: #f5f5f5;
+    color: #303030;
+  }
+
+  /* Enhanced Header */
+  .polls-header-icon {
+    font-size: 50px;
+    color: #128C7E;
+    margin-bottom: 10px;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+  }
+
+  /* Poll Card Improvements */
+  .whatsapp-poll-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    padding: 20px 20px;
+    margin-bottom: 24px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .poll-hover-effect:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Enhanced Poll Header */
+  .poll-header {
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding-bottom: 15px;
+    position: relative;
+  }
+
+  .poll-topic-icon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #f0f0f0;
+    color: #128C7E;
+    font-size: 16px;
+  }
+
+  .poll-title {
+    margin: 0 0 10px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #222;
+    padding-right: 40px;
+    line-height: 1.4;
+  }
+
+  .poll-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #667781;
+  }
+
+  .poll-date {
+    color: #888;
+  }
+
+  /* Chart Improvements */
+  .chart-container {
+    display: flex;
+    margin: 20px 0;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 12px;
+    align-items: center;
+    position: relative;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+  }
+
+  .chart-wrapper {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    flex-shrink: 0;
+  }
+
+  .poll-chart {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .chart-center-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .vote-number {
+    display: block;
+    font-size: 28px;
+    font-weight: bold;
+    color: #128C7E;
+    line-height: 1;
+  }
+
+  .vote-label {
+    font-size: 14px;
+    color: #667781;
+  }
+
+  /* Enhanced Legend */
+  .chart-legend {
+    margin-left: 25px;
+    flex-grow: 1;
+    max-height: 180px;
+    overflow-y: auto;
+    padding: 5px 10px;
+    border-left: 1px dashed rgba(0, 0, 0, 0.1);
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+    font-size: 14px;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+
+  .legend-item:hover {
+    background: rgba(0, 0, 0, 0.03);
+  }
+
+  .color-box {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    margin-right: 10px;
+    display: inline-block;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .legend-text {
+    flex-grow: 1;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 70%;
+    font-weight: 500;
+  }
+
+  .legend-count {
+    font-weight: 600;
+    color: #128C7E;
+    margin-left: 10px;
+    white-space: nowrap;
+  }
+
+  /* Enhanced Options Styling */
+  .wa-options-container {
+    margin-bottom: 20px;
+  }
+
+  .wa-option-item {
+    margin-bottom: 12px;
+    position: relative;
+  }
+
+  .wa-option-label {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0;
+    padding: 10px 0;
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+  }
+
+  .wa-option-label:hover {
+    transform: translateX(3px);
+  }
+
+  .wa-option-text {
+    position: relative;
+    z-index: 2;
+    padding: 0 12px;
+    margin-bottom: 8px;
+    font-weight: 500;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+  }
+
+  .option-icon {
+    color: #128C7E;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    opacity: 0.7;
+  }
+
+  .option-input:checked + .wa-option-label .option-icon {
+    color: #25D366;
+    transform: scale(1.2);
+    opacity: 1;
+  }
+
+  .wa-vote-count {
+    position: absolute;
+    right: 12px;
+    top: 10px;
+    z-index: 2;
+    font-weight: 600;
+    font-size: 14px;
+    color: #128C7E;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 2px 8px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .wa-option-bar-container {
+    position: relative;
+    height: 26px;
+    background: #E9EDEF;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    margin: 0;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+  .wa-option-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: #D8F8F0;
+    border-radius: 10px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Selected option styling enhancements */
+  .option-input:checked + .wa-option-label .wa-option-bar {
+    background: #25D366;
+    background: linear-gradient(to right, #25D366, #128C7E);
+    box-shadow: 0 2px 5px rgba(37, 211, 102, 0.3);
+  }
+
+  .option-input:checked + .wa-option-label .wa-option-text {
+    font-weight: 600;
+  }
+
+  .option-input:checked + .wa-option-label .wa-option-bar-container {
+    box-shadow: 0 0 0 2px rgba(37, 211, 102, 0.2);
+  }
+
+  .option-input:checked + .wa-option-label .wa-vote-count {
+    color: white;
+    background: #25D366;
+    box-shadow: 0 2px 5px rgba(37, 211, 102, 0.2);
+  }
+
+  /* Enhanced Vote Button */
+  .wa-poll-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  .wa-vote-button {
+    background: #128C7E;
+    color: white;
+    border: none;
+    border-radius: 24px;
+    padding: 10px 30px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+  }
+
+  .wa-vote-button:hover {
+    background: #075E54;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+  }
+
+  .wa-vote-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  /* New Poll Footer */
+  .poll-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    font-size: 13px;
+    color: #667781;
+  }
+
+  .poll-status {
+    display: flex;
+    align-items: center;
+  }
+
+  .poll-status i {
+    color: #25D366;
+    margin-right: 5px;
+  }
+
+  .btn-share {
+    background: none;
+    border: none;
+    color: #128C7E;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+  }
+
+  .btn-share:hover {
+    background: rgba(18, 140, 126, 0.1);
+    transform: scale(1.1);
+  }
+
+  /* Empty state enhancements */
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  }
+
+  .empty-icon {
+    font-size: 50px;
+    color: #d1d1d1;
+    margin-bottom: 20px;
+  }
+
+  .empty-state h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #333;
+  }
+
+  .empty-state p {
+    color: #667781;
+    font-size: 16px;
+  }
+
+  /* Voted indicator enhancements */
+  .voted-indicator {
+    display: none;
+    position: absolute;
+    right: -24px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 24px;
+    width: 24px;
+    border-radius: 50%;
+    background: #25D366;
+    color: white;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    z-index: 5;
+    box-shadow: 0 2px 5px rgba(37, 211, 102, 0.3);
+  }
+
+  /* Additional responsive adjustments */
+  @media (max-width: 768px) {
+    .chart-container {
+      flex-direction: column;
+      padding: 15px 10px;
+    }
+
+    .chart-wrapper {
+      width: 160px;
+      height: 160px;
+      margin-bottom: 15px;
+    }
+
+    .chart-legend {
+      margin-left: 0;
+      width: 100%;
+      max-height: 200px;
+      border-left: none;
+      border-top: 1px dashed rgba(0, 0, 0, 0.1);
+      padding-top: 15px;
+    }
+
+    .poll-meta {
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .poll-date {
+      font-size: 12px;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .chart-wrapper {
+      width: 140px;
+      height: 140px;
+    }
+
+    .vote-number {
+      font-size: 24px;
+    }
+
+    .vote-label {
+      font-size: 12px;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Generate nice color palette for charts
+    function generateColors(count) {
+      const baseColors = [
+        '#25D366', '#128C7E', '#34B7F1', '#075E54', '#dcf8c6',
+        '#ece5dd', '#5cb85c', '#4d94ff', '#f0ad4e', '#d9534f'
+      ];
+
+      // If we have more options than base colors, generate additional ones
+      let colors = [...baseColors];
+      if (count > baseColors.length) {
+        for (let i = baseColors.length; i < count; i++) {
+          const hue = i * (360 / count);
+          colors.push(`hsl(${hue}, 70%, 60%)`);
+        }
+      }
+
+      return colors.slice(0, count);
+    }
+
+    // Initialize pie charts for each poll
+    document.querySelectorAll('.poll-chart').forEach(chartCanvas => {
+      const pollId = chartCanvas.id.split('-')[1];
+      const optionElements = document.querySelectorAll(`#poll-form-${pollId} .wa-option-bar`);
+
+      if (optionElements.length > 0) {
+        // Extract option data
+        const labels = [];
+        const data = [];
+        const voteCounts = [];
+        const optionIds = [];
+
+        optionElements.forEach(option => {
+          const percentage = parseInt(option.getAttribute('data-percentage'), 10);
+          const optionId = option.getAttribute('data-option-id');
+          const optionText = document.querySelector(`label[for="option-${optionId}"] .wa-option-text`).innerText;
+          const voteCount = parseInt(document.querySelector(`label[for="option-${optionId}"] .wa-vote-count`).innerText);
+
+          labels.push(optionText);
+          data.push(percentage);
+          voteCounts.push(voteCount);
+          optionIds.push(optionId);
+        });
+
+        // Generate colors
+        const colors = generateColors(optionElements.length);
+
+        // Update legend color boxes
+        optionIds.forEach((id, index) => {
+          const colorBox = document.getElementById(`legend-color-${id}`);
+          if (colorBox) {
+            colorBox.style.backgroundColor = colors[index];
+
+            // Update the bar colors to match the chart
+            const optionBar = document.querySelector(`.wa-option-bar[data-option-id="${id}"]`);
+            if (optionBar) {
+              optionBar.style.background = colors[index];
+            }
+          }
+        });
+
+        // Create chart
+        const ctx = chartCanvas.getContext('2d');
+        const chart = new Chart(ctx, {
+          type: 'pie',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: data,
+              backgroundColor: colors,
+              borderColor: 'white',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false // We're using our custom legend
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const index = context.dataIndex;
+                    return `${context.label}: ${voteCounts[index]} votes`;
+                  }
+                }
+              }
+            },
+            animation: {
+              animateRotate: true,
+              animateScale: true,
+              duration: 1000
+            }
+          }
+        });
+
+        // Store chart instance for potential updates
+        window[`chart_${pollId}`] = chart;
+      }
+    });
+
+    // Check if there's a vote error in the URL or session
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasVoted = urlParams.get('already_voted') === 'true';
+
+    // Show toast if user has already voted
+    if (hasVoted) {
+      const toast = new bootstrap.Toast(document.getElementById('voteToast'));
+      toast.show();
+    }
+
+    // Function to animate bars on page load with WhatsApp-like effect
+    function animateBarsOnLoad() {
+      document.querySelectorAll('.wa-option-bar').forEach(bar => {
+        const finalWidth = bar.style.width;
+        bar.style.width = '0%';
+
+        setTimeout(() => {
+          bar.style.transition = 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
+          bar.style.width = finalWidth;
+        }, 300);
+      });
+    }
+
+    // Animate bars on initial page load
+    animateBarsOnLoad();
+
+    // Highlight results after voting (if vote was recorded)
+    const justVoted = urlParams.get('voted') === 'true';
+    if (justVoted) {
+      const pollId = urlParams.get('poll_id');
+      const formElement = document.getElementById(`poll-form-${pollId}`);
+      const votedOptionId = urlParams.get('option_id');
+
+      if (formElement) {
+        formElement.classList.add('voted');
+
+        // Highlight the selected option in both the bar and chart
+        if (votedOptionId) {
+          const selectedOption = document.getElementById(`option-${votedOptionId}`);
+          if (selectedOption) {
+            selectedOption.checked = true;
+
+            // Highlight in legend
+            const legendItem = document.querySelector(`.legend-item[data-option-id="${votedOptionId}"]`);
+            if (legendItem) {
+              legendItem.classList.add('voted-legend-item');
+            }
+
+            // Find the option container and add voted animation
+            const optionLabel = selectedOption.nextElementSibling;
+            if (optionLabel) {
+              optionLabel.classList.add('voted-animation');
+
+              // Add checkmark indicator to voted option
+              const indicator = document.createElement('div');
+              indicator.className = 'voted-indicator';
+              indicator.innerHTML = '✓';
+              optionLabel.appendChild(indicator);
+            }
+          }
+        }
+      }
+    }
+
+    // Store previous widths for animation on vote
+    document.querySelectorAll('.poll-form').forEach(form => {
+      form.addEventListener('submit', function() {
+        const selectedOption = this.querySelector('input[type="radio"]:checked');
+        if (selectedOption) {
+          // Store information for animation after page reload
+          localStorage.setItem('voted_option_id', selectedOption.value);
+          localStorage.setItem('voted_poll_id', this.querySelector('input[name="poll_id"]').value);
+        }
+      });
+    });
+
+    // Add share functionality
+    document.querySelectorAll('.btn-share').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+
+        // Get poll question
+        const pollCard = this.closest('.whatsapp-poll-card');
+        const pollQuestion = pollCard.querySelector('.poll-title').innerText;
+
+        // Set up share data
+        const shareData = {
+          title: 'Community Poll',
+          text: `Join and vote on this poll: "${pollQuestion}"`,
+          url: window.location.href
+        };
+
+        // Use Web Share API if available
+        if (navigator.share) {
+          navigator.share(shareData)
+            .catch((error) => console.log('Error sharing:', error));
+        } else {
+          // Fallback - copy link to clipboard
+          navigator.clipboard.writeText(window.location.href)
+            .then(() => {
+              // Show a toast for feedback
+              const toast = new bootstrap.Toast(document.getElementById('voteToast'));
+              document.querySelector('#voteToast .toast-body').innerText = 'Poll link copied to clipboard!';
+              toast.show();
+            })
+            .catch(err => {
+              console.error('Failed to copy: ', err);
+            });
+        }
+      });
+    });
+
+    // Option hover effects
+    document.querySelectorAll('.wa-option-label').forEach(option => {
+      option.addEventListener('mouseover', function() {
+        const icon = this.querySelector('.option-icon');
+        if (icon) {
+          icon.classList.remove('fa-circle-dot');
+          icon.classList.add('fa-check-circle');
+        }
+      });
+
+      option.addEventListener('mouseout', function() {
+        const radioInput = this.previousElementSibling;
+        const icon = this.querySelector('.option-icon');
+        if (icon && !radioInput.checked) {
+          icon.classList.remove('fa-check-circle');
+          icon.classList.add('fa-circle-dot');
+        }
+      });
+    });
+  });
+</script>
 {% endblock %}
