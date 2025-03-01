@@ -116,14 +116,14 @@
 </div>
 
 <!-- Toast Container for Notifications -->
-<div class="toast-container position-fixed bottom-0 end-0 p-3">
+<div class="toast-container bg-light-subtle position-fixed bottom-0 end-0 p-3">
   <div id="voteToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-    <div class="toast-header bg-warning">
+    <div class="toast-header"  style="background-color: #ff8800; color: white;">
       <i class="fas fa-exclamation-circle me-2"></i>
       <strong class="me-auto">Notice</strong>
       <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
     </div>
-    <div class="toast-body">
+    <div class="toast-body" style="background-color:white; color:black;" >
       You've already voted in this poll!
     </div>
   </div>
@@ -819,4 +819,35 @@
     });
   });
 </script>
+
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll(".poll-form").forEach((form) => {
+        const pollId = form.querySelector("input[name='poll_id']").value;
+        const voteKey = `voted_${pollId}`;
+
+        // Check if the user already voted
+        if (localStorage.getItem(voteKey)) {
+          form.classList.add("disabled"); // Optionally disable the form
+        }
+
+        form.addEventListener("submit", function (event) {
+          if (localStorage.getItem(voteKey)) {
+            event.preventDefault();
+            let voteToast = new bootstrap.Toast(document.getElementById("voteToast"));
+            voteToast.show();
+            return;
+          }
+
+          // Store vote status when the user submits the form
+          localStorage.setItem(voteKey, "true");
+        });
+      });
+    });
+  </script>
+
+
+
 {% endblock %}
