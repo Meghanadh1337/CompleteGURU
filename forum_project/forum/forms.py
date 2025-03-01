@@ -4,17 +4,28 @@ from django import forms
 from .models import User, Event, Post, Comment, Poll, Resume
 
 class CustomUserCreationForm(forms.ModelForm):
-    # Add the fields you need in the form
+    password = forms.CharField(widget=forms.PasswordInput)
+    password_confirm = forms.CharField(widget=forms.PasswordInput)
+
     class Meta:
         model = User
-        fields = ['username', 'name', 'email', 'password']  # Add 'name' and 'email'
+        fields = ['username', 'name', 'email', 'password']
 
-    # Optional: You can add custom validation here for email or other fields
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError('Email is already taken')
-        return email
+    def clean_password_confirm(self):
+        password = self.cleaned_data.get("password")
+        print("confirmed")
+        password_confirm = self.cleaned_data.get("password_confirm")
+        if password != password_confirm:
+            raise forms.ValidationError("Passwords do not match!")
+        return password_confirm
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password"])  # Hash the password
+        if commit:
+            user.save()
+        print("saved user")
+        return user
 
 class RegisterForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)
@@ -31,6 +42,12 @@ class RegisterForm(forms.ModelForm):
             raise forms.ValidationError("Passwords do not match!")
         return password_confirm
 
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password"])  # Hash the password
+        if commit:
+            user.save()
+        return user
 
 class LoginForm(forms.Form):
     username = forms.CharField()

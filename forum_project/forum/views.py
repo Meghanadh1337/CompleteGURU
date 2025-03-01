@@ -136,16 +136,21 @@ def register(request):
 
     return render(request, 'register.html', {'form': form})
 
-# Login view
 def login_view(request):
+    print("DEBUG: login_view executed")
     if request.method == "POST":
+        print("DEBUG: Login POST request received")
+        print("DEBUG: Received username:", request.POST.get("username"))
         form = AuthenticationForm(data=request.POST)
+
         if form.is_valid():
             user = form.get_user()
+            print("DEBUG: Authentication successful for user:", user)
             login(request, user)
-            return redirect('home')  # Redirect to home after login
+            return redirect('home')
         else:
-            print("DEBUG: Authentication failed - Errors:", form.errors)  # Print errors
+            print("DEBUG: Authentication failed - Errors:", form.errors)
+
     else:
         form = AuthenticationForm()
 

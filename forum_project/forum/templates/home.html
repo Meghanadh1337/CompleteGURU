@@ -3,16 +3,72 @@
 
 {% block content %}
 <div class="container text-center mt-5">
-    <h1 class="display-4 fw-bold">Welcome to the Forum App</h1>
+    <div class="hero-container">
+        <h1 class="hero-title">Welcome to the G.U.R.U Application</h1>
+      </div>
+
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap');
+
+        .hero-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: 50px;
+          background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+          border-radius: 20px;
+          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+          position: relative;
+          overflow: hidden;
+          text-align: center;
+          max-width: 600px;
+          margin: auto;
+          border: 4px solid #444;
+        }
+
+        .hero-container::before {
+          content: "";
+          position: absolute;
+          width: 80px;
+          height: 80px;
+          background: linear-gradient(45deg, #007bff, #6610f2);
+          border-radius: 50%;
+          top: -20px;
+          left: -20px;
+        }
+
+        .hero-container::after {
+          content: "";
+          position: absolute;
+          width: 100px;
+          height: 100px;
+          background: linear-gradient(45deg, #ffb400, #ff416c);
+          border-radius: 50%;
+          bottom: -30px;
+          right: -30px;
+        }
+
+        .hero-title {
+          font-family: 'Poppins', sans-serif;
+          font-size: 3rem;
+          font-weight: 600;
+          letter-spacing: 1px;
+          color: #222;
+          z-index: 1;
+        }
+      </style>
+
+
+
     <p class="lead text-muted">Engage in discussions, participate in polls, explore events, and submit your resume for review.</p>
 
     <!-- Call-to-Action Buttons -->
     <div class="mt-4">
-        <a href="/posts/" class="btn btn-primary btn-lg m-2">Explore Posts</a>
+        <a href="/posts/" class="btn btn- btn-lg m-2">Explore Posts</a>
         <a href="/polls/" class="btn btn-outline-primary btn-lg m-2">Take a Poll</a>
         <a href="/events/" class="btn btn-success btn-lg m-2">View Events</a>
         <a href="/resume-review/" class="btn btn-warning btn-lg m-2">Submit Resume</a>
-<a href="/manage-content/" class="btn btn-secondary btn-lg m-2">Manage Content</a>
+        <a href="/manage/" class="btn btn-secondary btn-lg m-2">Manage Content</a>
     </div>
 
     <!-- Features Section -->

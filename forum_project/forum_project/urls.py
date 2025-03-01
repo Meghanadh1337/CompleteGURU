@@ -23,7 +23,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('forum.urls')),  # Frontend pages
     path('api/', include('forum.api_urls')),  # API routes
-    path('logout/', include('django.contrib.auth.urls')),
 ]
 
 if settings.DEBUG:  # Only serve media files in development

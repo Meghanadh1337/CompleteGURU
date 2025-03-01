@@ -25,8 +25,7 @@ SECRET_KEY = 'django-insecure-rs0&q&vmezr_(e_)w4qiqb7%nm56gkaipl=7b@oixqg#h8xf#p
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ['192.168.82.112', 'localhost', '127.0.0.1']
 
 # Application definition
 
@@ -125,7 +124,10 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 TEMPLATES[0]['DIRS'] = [BASE_DIR / "forum/templates"]
 AUTH_USER_MODEL = 'forum.User'
-LOGOUT_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = 'login'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 AUTH_USER_MODEL = 'forum.User'
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
