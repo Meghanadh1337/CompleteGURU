@@ -1,44 +1,386 @@
 {% extends "base.html" %}
 {% block title %}Resume Review{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<style>
+    /* Define custom properties */
+    :root {
+        --primary-color: #008080;       /* Teal */
+        --primary-dark: #006666;        /* Dark Teal */
+        --primary-light: #e0f2f1;       /* Light Teal */
+        --accent-color: #008080;       /* Coral */
+        --accent-dark: #008080;         /* Dark Coral */
+        --accent-light: #ffebe5;        /* Light Coral */
+        --success-color: #2ecc71;       /* Green */
+        --warning-color: #ffb347;       /* Orange */
+        --neutral-bg: #f0f7f7;          /* Light Teal Background */
+        --card-bg: #ffffff;             /* White */
+        --text-dark: #1a3a3a;           /* Dark Teal Text */
+        --text-medium: #416b68;         /* Medium Teal Text */
+        --text-light: #6b9a99;          /* Light Teal Text */
+    }
+
+    /* Fix body background */
+    body {
+        background-color: #fcfcfc !important;
+    }
+
+    /* Card styling with !important to override Bootstrap */
+    .resume-card {
+        border-radius: 12px !important;
+        box-shadow: 0 10px 25px rgba(0, 128, 128, 0.1) !important;
+        padding: 28px !important;
+        margin-bottom: 24px !important;
+        background: linear-gradient(135deg, #ffffff 0%, var(--primary-light) 100%) !important;
+        border-top: 5px solid var(--primary-color) !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .resume-card:hover {
+        box-shadow: 0 15px 30px rgba(0, 128, 128, 0.15) !important;
+        transform: translateY(-5px) !important;
+    }
+
+    /* Form header styling */
+    .form-header {
+        border-bottom: 3px solid var(--primary-color) !important;
+        padding-bottom: 15px !important;
+        margin-bottom: 25px !important;
+        color: var(--text-dark) !important;
+        background: linear-gradient(90deg, var(--primary-light), #ffffff) !important;
+        padding: 10px !important;
+        border-radius: 8px !important;
+    }
+
+    /* Resume list item styling */
+    .resume-list-item {
+        transition: all 0.3s ease !important;
+        border-left: 0px solid var(--accent-color) !important;
+    }
+
+    .resume-list-item:hover {
+        background: linear-gradient(90deg, var(--primary-light), #ffffff) !important;
+        transform: translateX(5px) !important;
+        border-left: 6px solid var(--accent-color) !important;
+    }
+
+    /* Icon container styling */
+    .icon-container {
+        width: 45px !important;
+        height: 45px !important;
+        background: linear-gradient(135deg, var(--accent-color) 0%, var(--primary-color) 100%) !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin-right: 15px !important;
+        box-shadow: 0 4px 8px rgba(0, 128, 128, 0.3) !important;
+    }
+
+    .icon-container i {
+        color: white !important;
+    }
+
+    /* Page container styling */
+    .page-container {
+        background: linear-gradient(135deg, var(--neutral-bg) 0%, #ffffff 100%) !important;
+        padding: 30px 0 !important;
+        border-radius: 15px !important;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05) !important;
+    }
+
+    /* Card header styling */
+    .card-header-custom {
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-dark)) !important;
+        color: white !important;
+        border-bottom: none !important;
+        border-radius: 10px 10px 0 0 !important;
+        padding: 15px 20px !important;
+    }
+
+    .card-header-custom h3 {
+        color: white !important;
+        margin-bottom: 0 !important;
+    }
+
+    .card-header-custom i {
+        color: white !important;
+    }
+
+    /* Tips card styling */
+    .tips-card {
+        background: linear-gradient(135deg, #ffffff 0%, var(--accent-light) 100%) !important;
+        border-radius: 12px !important;
+        border: none !important;
+        border-left: 5px solid var(--accent-color) !important;
+        box-shadow: 0 8px 20px rgba(255, 127, 80, 0.15) !important;
+    }
+
+    /* Button styling */
+    .btn-primary-custom {
+        background: linear-gradient(90deg, var(--primary-color), var(--primary-dark)) !important;
+        border: none !important;
+        color: white !important;
+        border-radius: 30px !important;
+        padding: 10px 25px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 4px 15px rgba(0, 128, 128, 0.3) !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .btn-primary-custom:hover {
+        background: linear-gradient(90deg, var(--primary-dark), var(--primary-color)) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(0, 128, 128, 0.4) !important;
+    }
+
+    .btn-accent {
+        background: linear-gradient(90deg, var(--accent-color), var(--accent-dark)) !important;
+        border: none !important;
+        color: white !important;
+        border-radius: 30px !important;
+        padding: 10px 25px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 4px 15px rgba(255, 127, 80, 0.3) !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .btn-accent:hover {
+        background: linear-gradient(90deg, var(--accent-dark), var(--accent-color)) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(255, 127, 80, 0.4) !important;
+    }
+
+    /* Form control styling */
+    .form-control {
+        border-radius: 8px !important;
+        border: 2px solid #e2e8f0 !important;
+        padding: 10px 15px !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .form-control:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 3px rgba(0, 128, 128, 0.25) !important;
+    }
+
+    /* Empty state styling */
+    .empty-state {
+        background: linear-gradient(135deg, #ffffff 0%, var(--primary-light) 100%) !important;
+        padding: 40px !important;
+        border-radius: 0 0 10px 10px !important;
+        color: var(--text-medium) !important;
+    }
+
+    /* Icon styling */
+    .custom-icon {
+        color: var(--accent-color) !important;
+    }
+
+    .title-icon {
+        color: var(--primary-color) !important;
+    }
+
+    /* Title styling */
+    .teal-text {
+        color: var(--primary-color) !important;
+        font-weight: 700 !important;
+    }
+
+    .coral-text {
+        color: var(--accent-color) !important;
+        font-weight: 700 !important;
+    }
+
+    /* Tip item styling */
+    .tip-item {
+        position: relative !important;
+        padding-left: 25px !important;
+        margin-bottom: 10px !important;
+        color: var(--text-medium) !important;
+    }
+
+    .tip-item:before {
+        content: '✓' !important;
+        position: absolute !important;
+        left: 0 !important;
+        color: var(--accent-color) !important;
+        font-weight: bold !important;
+    }
+
+    /* Card with accent border */
+    .card-accent-border {
+        border-top: 4px solid var(--accent-color) !important;
+        border-radius: 0 0 12px 12px !important;
+    }
+
+    /* Direct element styling */
+    h1.page-title {
+        color: var(--text-dark) !important;
+        font-weight: bold !important;
+    }
+
+    label {
+        color: var(--text-dark) !important;
+        font-weight: 600 !important;
+        margin-bottom: 8px !important;
+    }
+
+    .card {
+        border: none !important;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07) !important;
+    }
+
+    /* Fix list group items */
+    .list-group-item {
+        border-left: none !important;
+        border-right: none !important;
+        padding: 15px 20px !important;
+    }
+
+    /* Fix Bootstrap badge */
+    .custom-badge {
+        background-color: var(--primary-color) !important;
+        color: white !important;
+        padding: 8px 12px !important;
+        border-radius: 20px !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-    <div class="container">
-        <div class="row mb-4">
+    <div class="container py-5 page-container">
+        <h1 class="text-center mb-5 page-title">
+            <span class="teal-text">Resume</span>
+            <span class="coral-text">Review Portal</span>
+        </h1>
+
+        <div class="row mb-5">
             <div class="col-md-8">
-                <h2>Submit Your Resume for Review</h2>
-                <form method="post" enctype="multipart/form-data" action="{% url 'upload_resume' %}">
-                    {% csrf_token %}
-                    <div class="form-group">
-                        <label for="name">Your Name</label>
-                        <input type="text" name="name" class="form-control mb-2" required>
+                <div class="resume-card">
+                    <div class="form-header d-flex align-items-center mb-4">
+                        <i class="fas fa-file-upload fa-2x mr-3 title-icon"></i>
+                        <h2 class="mb-0 teal-text">Submit Your Resume for Review</h2>
                     </div>
-                    <div class="form-group">
-                        <label for="email">Your Email</label>
-                        <input type="email" name="email" class="form-control mb-2" required>
+
+                    <form method="post" enctype="multipart/form-data" action="{% url 'upload_resume' %}" class="needs-validation">
+                        {% csrf_token %}
+                        <div class="form-group mb-4">
+                            <label for="name" class="form-label">
+                                <i class="fas fa-user mr-2 custom-icon"></i> Your Name
+                            </label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope mr-2 custom-icon"></i> Your Email
+                            </label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="resume_file" class="form-label">
+                                <i class="fas fa-file-pdf mr-2 custom-icon"></i> Upload Resume
+                            </label>
+                            <input type="file" name="resume_file" class="form-control" required accept=".pdf,.doc,.docx">
+                            <small style="color: var(--text-medium) !important;">Accepted formats: PDF, DOC, DOCX</small>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button type="submit" class="btn btn-primary-custom">
+                                <i class="fas fa-cloud-upload-alt mr-2"></i> Upload Resume
+                            </button>
+                            <span style="color: var(--text-medium) !important;" class="small">Get expert feedback</span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card tips-card">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4" style="color: var(--text-dark) !important;">
+                            <i class="fas fa-lightbulb mr-2" style="color: var(--accent-color) !important;"></i> Resume Tips
+                        </h5>
+                        <div class="card-text">
+                            <p class="tip-item">Keep it concise and relevant</p>
+                            <p class="tip-item">Highlight your achievements</p>
+                            <p class="tip-item">Use action verbs</p>
+                            <p class="tip-item">Ensure proper formatting</p>
+                            <p class="tip-item">Tailor for each application</p>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <span class="badge custom-badge">
+                                <i class="fas fa-star mr-1"></i> Professional Advice
+                            </span>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="resume_file">Upload Resume (PDF format recommended)</label>
-                        <input type="file" name="resume_file" class="form-control mb-2" required accept=".pdf,.doc,.docx">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Upload</button>
-                </form>
+                </div>
             </div>
         </div>
-        
+
         <div class="row">
             <div class="col-md-12">
-                <h3>Submitted Resumes</h3>
-                <div class="list-group">
-                    {% for resume in resumes %}
-                        <a href="{% url 'view_resume' resume.id %}" class="list-group-item list-group-item-action">
-                            {{ resume.name }} - {{ resume.uploaded_at|date:"F j, Y" }}
-                        </a>
-                    {% empty %}
-                        <p class="list-group-item">No resumes uploaded yet.</p>
-                    {% endfor %}
+                <div class="card card-accent-border">
+                    <div class="card-header card-header-custom d-flex align-items-center">
+                        <i class="fas fa-list-alt fa-lg mr-2"></i>
+                        <h3 class="mb-0">Submitted Resumes</h3>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        {% for resume in resumes %}
+                            <a href="{% url 'view_resume' resume.id %}" class="list-group-item list-group-item-action resume-list-item d-flex align-items-center">
+                                <div class="icon-container">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <div>
+                                    <h5 class="mb-1" style="color: var(--text-dark) !important;">{{ resume.name }}</h5>
+                                    <small style="color: var(--text-light) !important;"><i class="far fa-calendar-alt mr-1"></i> {{ resume.uploaded_at|date:"F j, Y" }}</small>
+                                </div>
+                                <i class="fas fa-chevron-right ml-auto" style="color: var(--accent-color) !important;"></i>
+                            </a>
+                        {% empty %}
+                            <div class="list-group-item text-center py-5 empty-state">
+                                <i class="fas fa-inbox fa-3x mb-3" style="color: var(--text-medium) !important;"></i>
+                                <p class="mb-0 font-weight-bold" style="color: var(--primary-color) !important;">No resumes uploaded yet</p>
+                                <p style="color: var(--text-medium) !important;" class="mb-3">Be the first to submit your resume for review!</p>
+                                <a href="#" class="btn btn-accent btn-sm">
+                                    <i class="fas fa-upload mr-1"></i> Upload Now
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Add additional inline styles to fix any remaining issues -->
+    <style>
+        /* Fix any styles that might be getting overridden */
+        .teal-text {
+            color: #008080 !important;
+        }
+        .coral-text {
+            color: #008080 !important;
+        }
+        .custom-icon {
+            color: #008080 !important;
+        }
+        .title-icon {
+            color: #008080 !important;
+        }
+        .btn-primary-custom {
+            background: linear-gradient(90deg, #008080, #006666) !important;
+            color: white !important;
+        }
+        .btn-accent {
+            background: linear-gradient(90deg,#00808 ,#008080) !important;
+            color: white !important;
+        }
+        .icon-container i {
+            color: white !important;
+        }
+    </style>
 {% endblock %}
 
