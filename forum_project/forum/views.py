@@ -372,9 +372,14 @@ def user_profile(request):
     user = request.user
     if request.method == 'POST':
         form = UserProfileForm(request.POST, instance=user)
+        print("Form submitted")
         if form.is_valid():
+            print("Form is valid")
             form.save()
             return redirect('user_profile')
+        else:
+            print("Form is not valid")
+            print(form.errors)  # Print form errors for debugging
     else:
         form = UserProfileForm(instance=user)
     return render(request, 'user_profile.html', {'user': user, 'form': form})

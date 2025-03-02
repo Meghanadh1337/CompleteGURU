@@ -11,59 +11,97 @@ User Profile
         color: white;
         padding: 20px;
         border-radius: 10px 10px 0 0;
+        text-align: center;
     }
     .profile-card {
         border-radius: 10px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
     }
     .profile-card-body {
         padding: 20px;
+        background-color: #f9f9f9;
     }
     .profile-info {
         margin-bottom: 10px;
     }
+    .profile-info p {
+        margin: 0;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .btn-primary {
+        background-color: #4267B2;
+        border-color: #4267B2;
+    }
+    .btn-primary:hover {
+        background-color: #365899;
+        border-color: #365899;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
 </style>
 
 <div class="container mt-5">
-    <div class="profile-header text-center">
+    <div class="profile-header">
         <h1><i class="fas fa-user"></i> User Profile</h1>
     </div>
     <div class="card profile-card mt-3">
         <div class="card-body profile-card-body">
-            <div class="profile-info">
-                <p><strong>Name:</strong> {{ user.name }}</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="profile-info">
+                        <p><strong>Name:</strong> {{ user.name }}</p>
+                    </div>
+                    <div class="profile-info">
+                        <p><strong>Email:</strong> {{ user.email }}</p>
+                    </div>
+                    <div class="profile-info">
+                        <p><strong>Username:</strong> {{ user.username }}</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="profile-info">
+                        <p><strong>Gender:</strong> {{ user.gender }}</p>
+                    </div>
+                    <div class="profile-info">
+                        <p><strong>Branch:</strong> {{ user.branch }}</p>
+                    </div>
+                    <div class="profile-info">
+                        <p><strong>Faculty:</strong> {{ user.faculty }}</p>
+                    </div>
+                    <div class="profile-info">
+                        <p><strong>Skills:</strong> {{ user.skills }}</p>
+                    </div>
+                </div>
             </div>
-            <div class="profile-info">
-                <p><strong>Email:</strong> {{ user.email }}</p>
-            </div>
-            <div class="profile-info">
-                <p><strong>Username:</strong> {{ user.username }}</p>
-            </div>
-            <div class="profile-info">
-                <p><strong>Gender:</strong> {{ user.gender }}</p>
-            </div>
-            <div class="profile-info">
-                <p><strong>Branch:</strong> {{ user.branch }}</p>
-            </div>
-            <div class="profile-info">
-                <p><strong>Faculty:</strong> {{ user.faculty }}</p>
-            </div>
-            <div class="profile-info">
-                <p><strong>Skills:</strong> {{ user.skills }}</p>
-            </div>
-            <!-- Add other fields as needed -->
-            <form method="post">
+            <form method="post" class="mt-4">
                 {% csrf_token %}
-                {% for field in form %}
-                    {% if field.name != 'name' and field.name != 'email' %}
-                        <div class="form-group">
-                            {{ field.label_tag }}
-                            {{ field }}
-                            {{ field.errors }}
+                <div class="row">
+                    {% for field in form %}
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {{ field.errors }}
+                            </div>
                         </div>
-                    {% endif %}
-                {% endfor %}
-                <button type="submit" class="btn btn-primary">Update Details</button>
+                    {% endfor %}
+                </div>
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        <button type="submit" class="btn btn-primary">Update Details</button>
+                    </div>
+                </div>
             </form>
         </div>
     </div>
