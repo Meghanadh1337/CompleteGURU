@@ -14,8 +14,11 @@ from pathlib import Path
 import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-MEDIA_URL = "/media/"  # URL for serving media files
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")  # Storage location
+
+# Media files (Uploaded files)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -131,3 +134,6 @@ AUTH_USER_MODEL = 'forum.User'
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+# Set X-Frame-Options to allow same-origin framing
+X_FRAME_OPTIONS = 'SAMEORIGIN'

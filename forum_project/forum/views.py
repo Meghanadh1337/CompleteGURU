@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import TopicSerializer , PostSerializer , CommentSerializer , EventSerializer , PollSerializer ,ResumeSerializer
 from django.shortcuts import render , get_object_or_404
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.contrib.auth import login , get_user_model
 from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import redirect
@@ -17,6 +17,10 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import user_passes_test
 import json
+from django.urls import reverse
+import os
+from .models import Resume, ImprovementArea, ResumeImprovement, ResumeVote
+
 class TopicListCreateView(generics.ListCreateAPIView):
     queryset = Topic.objects.all()
     serializer_class = TopicSerializer
@@ -90,20 +94,119 @@ def polls(request):
     poll_list = Poll.objects.all()  # Fetch all polls
     return render(request, "polls.html", {"polls": poll_list})
 
+@login_required
 def resume_review(request):
-    if request.method == "POST":
-        print("POST request received")  # Debugging step
-        if "resume_file" in request.FILES:
-            uploaded_file = request.FILES["resume_file"]
-            print(f"File received: {uploaded_file.name}")  # Debugging step
+    resumes = Resume.objects.all().order_by('-uploaded_at')
+    return render(request, 'resume_review.html', {'resumes': resumes})
 
-            resume = Resume.objects.create(resume_file=uploaded_file, reviewer="Pending")
-            print(f"File saved at: {resume.resume_file.path}")  # Debugging step
+@login_required
+def upload_resume(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        resume_file = request.FILES.get('resume_file')
+
+        if name and email and resume_file:
+            resume = Resume.objects.create(
+                name=name,
+                email=email,
+                resume_file=resume_file
+            )
+
+            # Check if improvement areas exist and create some if they don't
+            improvement_areas = ImprovementArea.objects.all()
+            if not improvement_areas.exists():
+                # Create default improvement areas if none exist
+                default_areas = [
+                    {
+                        'name': 'Resume Length',
+                        'description': 'The resume is too long and should be condensed to highlight key information.',
+                    },
+                    {
+                        'name': 'Formatting',
+                        'description': 'The resume formatting could be improved for better readability and visual appeal.',
+                    },
+                    {
+                        'name': 'Skills Section',
+                        'description': 'The skills section needs more relevant skills or better organization.',
+                    },
+                    {
+                        'name': 'Experience Details',
+                        'description': 'Work experiences should be more achievement-oriented rather than task-based.',
+                    },
+                    {
+                        'name': 'Education Section',
+                        'description': 'Education information could be improved or reorganized.',
+                    },
+                ]
+
+                for area_data in default_areas:
+                    area = ImprovementArea.objects.create(
+                        name=area_data['name'],
+                        description=area_data['description']
+                    )
+                    ResumeImprovement.objects.create(resume=resume, area=area)
+            else:
+                # Use existing improvement areas
+                for area in improvement_areas:
+                    ResumeImprovement.objects.create(resume=resume, area=area)
+
+            messages.success(request, "Resume uploaded successfully!")
+            return redirect('view_resume', resume_id=resume.id)
         else:
-            print("No file in request.FILES")  # Debugging step
+            messages.error(request, "Please fill all required fields.")
 
-    resumes = Resume.objects.all()
-    return render(request, "resume_review.html", {"resumes": resumes})
+    return redirect('resume_review')
+
+@login_required
+def view_resume(request, resume_id):
+    resume = get_object_or_404(Resume, id=resume_id)
+    improvements = ResumeImprovement.objects.filter(resume=resume).select_related('area')
+
+    # Get areas the current user has voted on for this resume
+    user_voted = ResumeVote.objects.filter(
+        user=request.user,
+        improvement__resume=resume
+    ).values_list('improvement__area__id', flat=True)
+
+    context = {
+        'resume': resume,
+        'improvements': improvements,
+        'user_voted': user_voted,
+    }
+
+    return render(request, 'view_resume.html', context)
+
+@login_required
+def vote_resume(request, resume_id):
+    if request.method == 'POST':
+        resume = get_object_or_404(Resume, id=resume_id)
+        area_id = request.POST.get('area_id')
+
+        if area_id:
+            try:
+                improvement = ResumeImprovement.objects.get(resume=resume, area_id=area_id)
+
+                # Check if user already voted for this improvement area
+                vote_exists = ResumeVote.objects.filter(
+                    user=request.user,
+                    improvement=improvement
+                ).exists()
+
+                if not vote_exists:
+                    # Create a vote record and increment the vote count
+                    ResumeVote.objects.create(user=request.user, improvement=improvement)
+                    improvement.votes += 1
+                    improvement.save()
+                    messages.success(request, "Your vote has been recorded.")
+                else:
+                    messages.info(request, "You have already voted for this improvement area.")
+            except ResumeImprovement.DoesNotExist:
+                messages.error(request, "Invalid improvement area.")
+        else:
+            messages.error(request, "No improvement area selected.")
+
+    return redirect('view_resume', resume_id=resume_id)
 
 def posts(request):
     if request.method == "POST":
@@ -237,3 +340,28 @@ def update_permissions(request, user_id):
 def check_admin_status(request):
     """Returns JSON response indicating if the user is an admin."""
     return JsonResponse({"is_admin": request.user.is_staff or request.user.is_superuser})
+
+def serve_resume_file(request, resume_id):
+    """Serve resume file with appropriate content-type headers"""
+    resume = get_object_or_404(Resume, id=resume_id)
+
+    # Determine the content type based on file extension
+    file_path = resume.resume_file.path
+    content_type = "application/pdf"  # Default to PDF
+
+    if file_path.endswith('.docx'):
+        content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    elif file_path.endswith('.doc'):
+        content_type = "application/msword"
+
+    # Read file content
+    with open(file_path, 'rb') as f:
+        response = HttpResponse(f.read(), content_type=content_type)
+
+    # Set content disposition header to inline to display in browser
+    response['Content-Disposition'] = f'inline; filename="{resume.name}_resume{os.path.splitext(file_path)[1]}"'
+
+    # Add header to allow embedding in iframe
+    response['X-Frame-Options'] = 'SAMEORIGIN'
+
+    return response

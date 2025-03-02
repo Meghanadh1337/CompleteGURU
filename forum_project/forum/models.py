@@ -73,3 +73,31 @@ class Resume(models.Model):
 
     def __str__(self):
         return self.name
+
+class ImprovementArea(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+
+    def __str__(self):
+        return self.name
+
+class ResumeImprovement(models.Model):
+    resume = models.ForeignKey(Resume, on_delete=models.CASCADE, related_name='improvements')
+    area = models.ForeignKey(ImprovementArea, on_delete=models.CASCADE)
+    votes = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ('resume', 'area')
+
+    def __str__(self):
+        return f"{self.resume.name}'s resume - {self.area.name}"
+
+class ResumeVote(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    improvement = models.ForeignKey(ResumeImprovement, on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ('user', 'improvement')
+
+    def __str__(self):
+        return f"{self.user.email} voted on {self.improvement}"
