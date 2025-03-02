@@ -135,20 +135,94 @@
             color: #555;
         }
 
+        .cta-tiles {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
 
+        .btn-tile {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.2rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 150px; /* Ensure square shape */
+            width: 100%; /* Full width */
+            color: white;
+            font-weight: 600;
+        }
 
+        .btn-tile:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
 
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-outline-primary {
+            background-color: #f8f9fa;
+            border: 2px solid #007bff;
+            color: #007bff;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-warning {
+            background-color: #ffc107;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-purple-cyan {
+            background-color: #F5F0E1;
+            color: #1e3d59;
+        }
+
+        .btn-teal-amber {
+            background-color: #20C997;
+            color:rgb(62, 22, 82);
+        }
+
+        .btn-indigo-lime {
+            background-color:rgb(247, 89, 16);
+            color: #C0CA33;
+        }
+
+        .btn-royalblue-coral {
+            background-color:rgb(61, 96, 200);
+            color: #FF6F61;
+        }
+
+        .btn-deepskyblue-orange {
+            background-color: #F5CCB3;
+            color: #1D3C45;
+        }
     </style>
 
     <p class="lead text-muted">Engage in discussions, participate in polls, explore events, and submit your resume for review.</p>
 
     <!-- Call-to-Action Buttons -->
-    <div class="mt-4">
-        <a href="/posts/" class="btn btn-primary btn-lg m-2">Explore Posts</a>
-        <a href="/polls/" class="btn btn-outline-primary btn-lg m-2">Take a Poll</a>
-        <a href="/events/" class="btn btn-success btn-lg m-2">View Events</a>
-        <a href="/resume-review/" class="btn btn-warning btn-lg m-2">Submit Resume</a>
-        <a href="/manage/" class="btn btn-secondary btn-lg m-2">Manage Content</a>
+    <div class="cta-tiles mt-4">
+        <a href="/posts/" class="btn-tile btn-purple-cyan">Explore Posts</a>
+        <a href="/polls/" class="btn-tile btn-teal-amber">Take a Poll</a>
+        <a href="/events/" class="btn-tile btn-indigo-lime">View Events</a>
+        <a href="/resume-review/" class="btn-tile btn-royalblue-coral">Submit Resume</a>
+        <a href="/manage/" class="btn-tile btn-deepskyblue-orange">Manage Content</a>
     </div>
 
     <!-- About Section -->
@@ -197,15 +271,5 @@
             <p>By joining G.U.R.U, users can benefit from better engagement, networking opportunities, and career support through our resume review services.</p>
         </div>
     </div>
-
-    <!-- Final Call-to-Action -->
-
 </div>
-
-<!-- Optional JavaScript -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Add any additional JavaScript for interactivity here
-    });
-</script>
 {% endblock %}
