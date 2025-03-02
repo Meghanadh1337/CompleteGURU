@@ -2,10 +2,32 @@
 {% block title %}Register{% endblock %}
 
 {% block content %}
-    <h2>Register</h2>
+<div style="display: flex; justify-content: center; align-items: center; min-height: 80vh;">
+  <div style="width: 100%; border-color:purple; border-width:20px; border:solid; max-width: 450px; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); background-color: white;">
+    <h2 style="text-align: center; margin-bottom: 1.5rem;">Register</h2>
+
     <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Register</button>
+      {% csrf_token %}
+
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        {% for field in form %}
+          <div style="display: flex; flex-direction: column;">
+            <label for="{{ field.id_for_label }}" style="margin-bottom: 0.5rem; font-weight: 500;">
+              {{ field.label }}
+            </label>
+            {{ field.errors }}
+            {{ field }}
+            {% if field.help_text %}
+              <small style="color: #6c757d; margin-top: 0.25rem;">{{ field.help_text }}</small>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <button type="submit" style="width: 100%; margin-top: 1.5rem; padding: 0.75rem; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">
+        Register
+      </button>
     </form>
+  </div>
+</div>
 {% endblock %}
