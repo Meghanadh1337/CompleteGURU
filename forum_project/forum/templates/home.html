@@ -51,22 +51,28 @@
 
         .about-section {
             padding: 50px 0;
-            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            background-color:white;
+            border-color: #1DA1F2;
+            border-width: 2px;
+            border-style: solid;
+            color: white;
             text-align: left;
             animation: fadeIn 1s ease-in-out;
+            border-radius: 10px;
+            padding: 20px;
         }
 
         .about-section h2 {
             font-family: 'Poppins', sans-serif;
             font-size: 2.5rem;
             font-weight: 600;
-            color: #333;
+            color:  #1DA1F2;
         }
 
         .about-section p {
             font-family: 'Poppins', sans-serif;
             font-size: 1.1rem;
-            color: #555;
+            color:  #1DA1F2;
             margin-bottom: 20px;
         }
 
@@ -93,15 +99,45 @@
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .faq-section {
+            padding: 50px 0;
+            text-align: left;
+            animation: fadeIn 1s ease-in-out;
         }
 
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        .faq-section h2 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #FF8800;
         }
+
+        .faq-item {
+            background: #f1f1f1;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .faq-item h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .faq-item p {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.1rem;
+            color: #555;
+        }
+
+
+
+
     </style>
 
     <p class="lead text-muted">Engage in discussions, participate in polls, explore events, and submit your resume for review.</p>
@@ -117,7 +153,7 @@
 
     <!-- About Section -->
     <div class="about-section mt-5">
-        <h2>About G.U.R.U</h2>
+        <h2>About GURU</h2>
         <p>G.U.R.U stands for Guided Resource for University Readiness and Explanation. It exists to foster learning and collaboration among students, professionals, and knowledge seekers.</p>
         <p>Our platform is designed for those who are passionate about engaging in meaningful discussions, participating in interactive polls, and staying updated with the latest events.</p>
         <p>By joining G.U.R.U, users can benefit from better engagement, networking opportunities, and career support through our resume review services.</p>
@@ -142,6 +178,23 @@
                 <h3>📅 Events</h3>
                 <p>Stay updated with the latest events in your field.</p>
             </div>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="faq-section mt-5">
+        <h2>Frequently Asked Questions</h2>
+        <div class="faq-item">
+            <h3>What is G.U.R.U?</h3>
+            <p>G.U.R.U stands for Guided Resource for University Readiness and Explanation. It is a platform designed to foster learning and collaboration among students, professionals, and knowledge seekers.</p>
+        </div>
+        <div class="faq-item">
+            <h3>Who can benefit from G.U.R.U?</h3>
+            <p>Our platform is designed for those who are passionate about engaging in meaningful discussions, participating in interactive polls, and staying updated with the latest events.</p>
+        </div>
+        <div class="faq-item">
+            <h3>How does G.U.R.U help users?</h3>
+            <p>By joining G.U.R.U, users can benefit from better engagement, networking opportunities, and career support through our resume review services.</p>
         </div>
     </div>
 
