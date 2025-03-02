@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import home, polls, resume_review , posts ,event_list , register , login_view , manage_content , handle_form , delete_object, update_permissions, check_admin_status, upload_resume, view_resume, vote_resume, serve_resume_file
+from .views import home, polls, resume_review , posts ,event_list , register , login_view , manage_content , handle_form , delete_object, update_permissions, check_admin_status, upload_resume, view_resume, vote_resume, serve_resume_file, user_profile
 from django.shortcuts import render
 from django.contrib.auth.views import LogoutView
 def event_page(request):
@@ -26,4 +26,6 @@ urlpatterns = [
     path('resume/view/<int:resume_id>/', view_resume, name='view_resume'),
     path('resume/vote/<int:resume_id>/', vote_resume, name='vote_resume'),
     path('resume/file/<int:resume_id>/', serve_resume_file, name='serve_resume_file'),
+    path('profile/', user_profile, name='user_profile'),
+
 ]

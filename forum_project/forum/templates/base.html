@@ -30,6 +30,7 @@
                     <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
 
                     {% if user.is_authenticated %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'user_profile' %}">Profile</a></li>
                         <!-- Manage Content Button -->
                         <li class="nav-item">
                             <button id="manage-content-btn" class="btn btn-warning btn-sm">Manage Content</button>

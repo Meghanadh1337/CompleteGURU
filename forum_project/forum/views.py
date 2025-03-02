@@ -9,7 +9,7 @@ from django.contrib.auth import login , get_user_model
 from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm, EventForm, PostForm, CommentForm, PollForm, ResumeForm
+from .forms import CustomUserCreationForm, EventForm, PostForm, CommentForm, PollForm, ResumeForm, UserProfileForm
 from django.forms import modelform_factory
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -365,3 +365,16 @@ def serve_resume_file(request, resume_id):
     response['X-Frame-Options'] = 'SAMEORIGIN'
 
     return response
+
+
+@login_required
+def user_profile(request):
+    user = request.user
+    if request.method == 'POST':
+        form = UserProfileForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect('user_profile')
+    else:
+        form = UserProfileForm(instance=user)
+    return render(request, 'user_profile.html', {'user': user, 'form': form})

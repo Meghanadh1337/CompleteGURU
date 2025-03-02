@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}
+User Profile
+{% endblock %}
+
+{% block content %}
+<style>
+    .profile-header {
+        background-color: #4267B2; /* Facebook blue */
+        color: white;
+        padding: 20px;
+        border-radius: 10px 10px 0 0;
+    }
+    .profile-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .profile-card-body {
+        padding: 20px;
+    }
+    .profile-info {
+        margin-bottom: 10px;
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="profile-header text-center">
+        <h1><i class="fas fa-user"></i> User Profile</h1>
+    </div>
+    <div class="card profile-card mt-3">
+        <div class="card-body profile-card-body">
+            <div class="profile-info">
+                <p><strong>Name:</strong> {{ user.name }}</p>
+            </div>
+            <div class="profile-info">
+                <p><strong>Email:</strong> {{ user.email }}</p>
+            </div>
+            <div class="profile-info">
+                <p><strong>Username:</strong> {{ user.username }}</p>
+            </div>
+            <div class="profile-info">
+                <p><strong>Gender:</strong> {{ user.gender }}</p>
+            </div>
+            <div class="profile-info">
+                <p><strong>Branch:</strong> {{ user.branch }}</p>
+            </div>
+            <div class="profile-info">
+                <p><strong>Faculty:</strong> {{ user.faculty }}</p>
+            </div>
+            <div class="profile-info">
+                <p><strong>Skills:</strong> {{ user.skills }}</p>
+            </div>
+            <!-- Add other fields as needed -->
+            <form method="post">
+                {% csrf_token %}
+                {% for field in form %}
+                    {% if field.name != 'name' and field.name != 'email' %}
+                        <div class="form-group">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {{ field.errors }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+                <button type="submit" class="btn btn-primary">Update Details</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
