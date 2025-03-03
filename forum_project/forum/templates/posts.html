@@ -311,9 +311,7 @@
               </div>
 
               <div class="user-card">
-                <div class="user-avatar">
-                  {{ comment.author|slice:":1" }}
-                </div>
+
                 <div>
                   <span class="fw-bold">{{ comment.author }}</span>
                   <span class="ms-2">{{ comment.created_at|date:"F j, Y" }}</span>
@@ -338,10 +336,8 @@
             <input type="hidden" name="post_id" value="{{ post.id }}">
 
             <div class="mb-3">
-              <label for="author" class="form-label">Your Name</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-user"></i></span>
-                <input type="text" class="form-control" name="author" id="author" placeholder="Enter your name" required>
               </div>
             </div>
 
