@@ -228,8 +228,8 @@
         <a href="/polls/" class="btn-tile btn-teal-amber">Take a Poll</a>
         <a href="/events/" class="btn-tile btn-indigo-lime">View Events</a>
         <a href="/resume-review/" class="btn-tile btn-royalblue-coral">Submit Resume</a>
-        <a href="/manage/" class="btn-tile btn-deepskyblue-orange">Manage Content</a>
-<a href="/profile/" class="btn-tile btn-profile">Go to My Profile</a>
+        <a href="#" class="btn-tile btn-deepskyblue-orange" id="manage-content-link">Manage Content</a>
+        <a href="/profile/" class="btn-tile btn-profile">Go to My Profile</a>
     </div>
 
     <!-- About Section -->
@@ -279,4 +279,44 @@
         </div>
     </div>
 </div>
+
+<!-- Add toastr library if not already included in base.html -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<script>
+    // Configure toastr notifications
+    toastr.options = {
+        "closeButton": true,
+        "positionClass": "toast-top-right",
+        "showDuration": "300",
+        "hideDuration": "1000",
+        "timeOut": "5000",
+        "extendedTimeOut": "1000",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+    };
+
+    // Admin check for Manage Content link
+    document.getElementById('manage-content-link').addEventListener('click', function(e) {
+        e.preventDefault();
+
+        fetch('/check-admin-status/')
+            .then(response => response.json())
+            .then(data => {
+                if (data.is_admin) {
+                    window.location.href = '/manage/';
+                } else {
+                    toastr.error('You do not have access to the management area', 'Access Denied');
+                }
+            })
+            .catch(error => {
+                console.error('Error checking admin status:', error);
+                toastr.error('Failed to check permissions', 'Error');
+            });
+    });
+</script>
 {% endblock %}

@@ -339,6 +339,8 @@ def update_permissions(request, user_id):
 @login_required
 def check_admin_status(request):
     """Returns JSON response indicating if the user is an admin."""
+    print("user field",request.user.is_staff)
+    print("user field",request.user.is_superuser)
     return JsonResponse({"is_admin": request.user.is_staff or request.user.is_superuser})
 
 def serve_resume_file(request, resume_id):
