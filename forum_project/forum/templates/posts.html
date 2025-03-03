@@ -223,6 +223,46 @@
         margin: 0 12px;
       }
     }
+
+    /* Filter modal styles */
+    .filter-modal .modal-header {
+      background-color: var(--secondary-color);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .filter-section {
+      padding: 15px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .filter-section:last-child {
+      border-bottom: none;
+    }
+
+    .filter-section-title {
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--text-color);
+    }
+
+    .tag-filter {
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .tag-filter.selected {
+      background-color: #d1e5f5;
+      border: 1px solid #a8ccec;
+    }
+
+    .filter-badge {
+      background-color: var(--primary-color);
+      color: white;
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 10px;
+      margin-left: 5px;
+    }
   </style>
 </head>
 <body>
@@ -235,9 +275,84 @@
       <h1 class="h4 mb-0">Community Forum</h1>
       <div>
         <button class="btn btn-primary me-2">Ask Question</button>
-        <button class="btn btn-outline-secondary">
+        <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#filterModal">
           <i class="fas fa-filter me-1"></i> Filter
+          <span id="activeFiltersCount" class="filter-badge d-none">0</span>
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Modal -->
+  <div class="modal fade filter-modal" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="filterModalLabel"><i class="fas fa-filter me-2"></i>Filter Posts</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Sort by section -->
+          <div class="filter-section">
+            <h6 class="filter-section-title">Sort by</h6>
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" name="sortOption" id="sortNewest" value="newest" checked>
+              <label class="btn btn-outline-secondary" for="sortNewest">Newest</label>
+
+              <input type="radio" class="btn-check" name="sortOption" id="sortVotes" value="votes">
+              <label class="btn btn-outline-secondary" for="sortVotes">Most Votes</label>
+
+              <input type="radio" class="btn-check" name="sortOption" id="sortAnswers" value="answers">
+              <label class="btn btn-outline-secondary" for="sortAnswers">Most Answers</label>
+            </div>
+          </div>
+
+          <!-- Filter by tags -->
+          <div class="filter-section">
+            <h6 class="filter-section-title">Filter by Tags</h6>
+            <div class="d-flex flex-wrap gap-2">
+              <span class="tag tag-filter" data-tag="discussion">discussion</span>
+              <span class="tag tag-filter" data-tag="question">question</span>
+              <span class="tag tag-filter" data-tag="help">help</span>
+              <span class="tag tag-filter" data-tag="technical">technical</span>
+              <span class="tag tag-filter" data-tag="feature">feature</span>
+              <span class="tag tag-filter" data-tag="bug">bug</span>
+            </div>
+          </div>
+
+          <!-- Filter by date -->
+          <div class="filter-section">
+            <h6 class="filter-section-title">Filter by Date</h6>
+            <select class="form-select" id="dateFilter">
+              <option value="all">All time</option>
+              <option value="today">Today</option>
+              <option value="week">This week</option>
+              <option value="month">This month</option>
+              <option value="year">This year</option>
+            </select>
+          </div>
+
+          <!-- Filter by status -->
+          <div class="filter-section">
+            <h6 class="filter-section-title">Status</h6>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="answered" id="answeredFilter">
+              <label class="form-check-label" for="answeredFilter">
+                Answered questions
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="unanswered" id="unansweredFilter">
+              <label class="form-check-label" for="unansweredFilter">
+                Unanswered questions
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="resetFilters">Reset Filters</button>
+          <button type="button" class="btn btn-primary" id="applyFilters" data-bs-dismiss="modal">Apply Filters</button>
+        </div>
       </div>
     </div>
   </div>
@@ -393,6 +508,177 @@
 
         // Here you would typically make an API call to record the vote
       });
+    });
+
+    // Filter functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      // Elements
+      const tagFilters = document.querySelectorAll('.tag-filter');
+      const resetBtn = document.getElementById('resetFilters');
+      const applyBtn = document.getElementById('applyFilters');
+      const filterBadge = document.getElementById('activeFiltersCount');
+
+      // Store selected filters
+      const selectedFilters = {
+        tags: [],
+        sort: 'newest',
+        date: 'all',
+        status: []
+      };
+
+      // Toggle tag selection
+      tagFilters.forEach(tag => {
+        tag.addEventListener('click', function() {
+          this.classList.toggle('selected');
+          const tagValue = this.getAttribute('data-tag');
+
+          if (this.classList.contains('selected')) {
+            if (!selectedFilters.tags.includes(tagValue)) {
+              selectedFilters.tags.push(tagValue);
+            }
+          } else {
+            const index = selectedFilters.tags.indexOf(tagValue);
+            if (index > -1) {
+              selectedFilters.tags.splice(index, 1);
+            }
+          }
+        });
+      });
+
+      // Handle sort option changes
+      document.querySelectorAll('input[name="sortOption"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+          selectedFilters.sort = this.value;
+        });
+      });
+
+      // Handle date filter changes
+      document.getElementById('dateFilter').addEventListener('change', function() {
+        selectedFilters.date = this.value;
+      });
+
+      // Handle status filter changes
+      document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+          const value = this.value;
+
+          if (this.checked) {
+            if (!selectedFilters.status.includes(value)) {
+              selectedFilters.status.push(value);
+            }
+          } else {
+            const index = selectedFilters.status.indexOf(value);
+            if (index > -1) {
+              selectedFilters.status.splice(index, 1);
+            }
+          }
+        });
+      });
+
+      // Reset filters
+      resetBtn.addEventListener('click', function() {
+        // Reset tags
+        tagFilters.forEach(tag => {
+          tag.classList.remove('selected');
+        });
+
+        // Reset sort
+        document.getElementById('sortNewest').checked = true;
+
+        // Reset date
+        document.getElementById('dateFilter').value = 'all';
+
+        // Reset status checkboxes
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+          checkbox.checked = false;
+        });
+
+        // Reset selected filters object
+        selectedFilters.tags = [];
+        selectedFilters.sort = 'newest';
+        selectedFilters.date = 'all';
+        selectedFilters.status = [];
+
+        // Hide filter badge
+        filterBadge.classList.add('d-none');
+        filterBadge.textContent = '0';
+      });
+
+      // Apply filters
+      applyBtn.addEventListener('click', function() {
+        // Count active filters
+        let activeFiltersCount = 0;
+
+        // Count selected tags
+        if (selectedFilters.tags.length > 0) {
+          activeFiltersCount++;
+        }
+
+        // Count if sort is not default
+        if (selectedFilters.sort !== 'newest') {
+          activeFiltersCount++;
+        }
+
+        // Count if date is not default
+        if (selectedFilters.date !== 'all') {
+          activeFiltersCount++;
+        }
+
+        // Count status filters
+        if (selectedFilters.status.length > 0) {
+          activeFiltersCount++;
+        }
+
+        // Update badge
+        if (activeFiltersCount > 0) {
+          filterBadge.classList.remove('d-none');
+          filterBadge.textContent = activeFiltersCount;
+        } else {
+          filterBadge.classList.add('d-none');
+        }
+
+        // Apply filters to the posts
+        applyFiltersToPostList(selectedFilters);
+      });
+
+      // Function to apply filters to the post list
+      function applyFiltersToPostList(filters) {
+        const posts = document.querySelectorAll('.question-card');
+
+        posts.forEach(post => {
+          let shouldShow = true;
+
+          // Filter by tags if any selected
+          if (filters.tags.length > 0) {
+            const postTags = Array.from(post.querySelectorAll('.question-tags .tag'))
+              .map(tag => tag.textContent.trim());
+
+            // Check if post has any of the selected tags
+            const hasSelectedTag = filters.tags.some(tag => postTags.includes(tag));
+            if (!hasSelectedTag) {
+              shouldShow = false;
+            }
+          }
+
+          // Filter by status
+          if (filters.status.length > 0) {
+            const answers = post.querySelectorAll('.answer-item').length;
+            const isAnswered = answers > 0;
+
+            if ((filters.status.includes('answered') && !isAnswered) ||
+                (filters.status.includes('unanswered') && isAnswered)) {
+              shouldShow = false;
+            }
+          }
+
+          // Apply visibility
+          post.style.display = shouldShow ? 'block' : 'none';
+        });
+
+        // For sorting, we would need to rearrange the posts in the DOM
+        // In a real application, this might involve a server request with new sort parameters
+        console.log(`Applied sort: ${filters.sort}, date filter: ${filters.date}`);
+      }
     });
   </script>
   {% endblock %}
